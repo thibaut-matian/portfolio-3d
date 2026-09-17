@@ -16,6 +16,10 @@ export default function Projects() {
   const currentProject = projects[currentIndex]
   const slides = currentProject.screenshots || (currentProject.screenshot ? [currentProject.screenshot] : [])
 
+  // Calcul dynamique garanti : 01 — 04, 02 — 04, etc.
+  const formattedIndex = String(currentIndex + 1).padStart(2, '0')
+  const formattedTotal = String(projects.length).padStart(2, '0')
+
   const openCarousel = () => {
     setCurrentSlide(0)
     setShowScreenshot(true)
@@ -148,7 +152,7 @@ export default function Projects() {
       ref={sectionRef}
       className="relative w-full h-screen bg-[#08090b] text-white select-none overflow-hidden"
     >
-      {/* 1. IMAGE DE FOND NETTE AVEC DÉGRADÉ DE LECTURE */}
+      {/* 1. IMAGE DE FOND NETTE AVEC DÉGRADÉ LATÉRAL */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.img
@@ -184,9 +188,9 @@ export default function Projects() {
             >
               <div className="flex items-center gap-3 font-mono text-sm text-zinc-400 tracking-wider">
                 <div>
-                  <span className="text-white font-bold">{currentProject.index}</span>
+                  <span className="text-white font-bold">{formattedIndex}</span>
                   <span className="mx-2">—</span>
-                  <span>{currentProject.total}</span>
+                  <span>{formattedTotal}</span>
                 </div>
 
                 {currentProject.inProgress && (
