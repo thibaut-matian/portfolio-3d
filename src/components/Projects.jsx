@@ -12,6 +12,7 @@ export default function Projects() {
   const isLocked = useRef(false)
   const touchStartY = useRef(0)
   const touchStartX = useRef(0)
+  const isTouchOnCanvas = useRef(false)
   const sectionRef = useRef(null)
 
   const currentProject = projects[currentIndex]
@@ -53,7 +54,6 @@ export default function Projects() {
     const el = sectionRef.current
     if (!el) return
 
-    // Navigation molette (Desktop)
     const handleWheel = (e) => {
       if (showScreenshot) return
 
@@ -72,19 +72,24 @@ export default function Projects() {
       }
     }
 
-    // Gestion Swipe Mobile (horizontal ou vertical doux)
     const handleTouchStart = (e) => {
+      // Si le doigt se pose sur la 3D, on désactive le swipe de page
+      if (e.target.tagName === 'CANVAS' || e.target.closest('canvas')) {
+        isTouchOnCanvas.current = true
+        return
+      }
+      isTouchOnCanvas.current = false
       touchStartY.current = e.touches[0].clientY
       touchStartX.current = e.touches[0].clientX
     }
 
     const handleTouchEnd = (e) => {
-      if (showScreenshot) return
+      if (showScreenshot || isTouchOnCanvas.current) return
 
       const deltaY = touchStartY.current - e.changedTouches[0].clientY
       const deltaX = touchStartX.current - e.changedTouches[0].clientX
 
-      // Détection de swipe horizontal sur mobile pour changer de projet
+      // Swipe horizontal pour changer de projet
       if (Math.abs(deltaX) > 60 && Math.abs(deltaX) > Math.abs(deltaY)) {
         if (deltaX > 0 && currentIndex < projects.length - 1) {
           goToProject(currentIndex + 1)
@@ -94,7 +99,6 @@ export default function Projects() {
       }
     }
 
-    // Commandes Clavier
     const handleKeyDown = (e) => {
       if (showScreenshot) {
         if (e.key === 'Escape') setShowScreenshot(false)
@@ -129,7 +133,7 @@ export default function Projects() {
       ref={sectionRef}
       className="relative w-full h-[100dvh] bg-[#08090b] text-white select-none overflow-hidden flex flex-col justify-between"
     >
-      {/* 1. FOND AVEC DÉGRADÉ ADAPTATIF */}
+      {/* Fond avec dégradé */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.img
@@ -146,11 +150,11 @@ export default function Projects() {
         <div className="absolute inset-0 bg-gradient-to-b md:bg-gradient-to-r from-black/80 via-black/60 to-black/90" />
       </div>
 
-      {/* 2. CONTENU PRINCIPAL ADAPTATIF MOBILE & DESKTOP */}
+      {/* Contenu principal */}
       <div className="relative z-10 max-w-7xl mx-auto w-full flex-1 px-5 sm:px-8 md:px-16 flex flex-col md:grid md:grid-cols-2 items-center justify-center gap-2 sm:gap-6 md:gap-16 pt-14 pb-16 md:py-0">
         
-        {/* Zone 3D compacte sur smartphone */}
-        <div className="w-full h-[210px] sm:h-[280px] md:h-[500px] flex items-center justify-center shrink-0">
+        {/* Zone 3D : touch-none impératif pour mobile */}
+        <div className="w-full h-[220px] sm:h-[280px] md:h-[500px] flex items-center justify-center shrink-0 touch-none cursor-grab active:cursor-grabbing">
           <CartridgeCanvas activeIndex={currentIndex} />
         </div>
 
@@ -165,7 +169,6 @@ export default function Projects() {
               transition={{ duration: 0.3 }}
               className="space-y-3 sm:space-y-4 md:space-y-6"
             >
-              {/* Compteur et Badge */}
               <div className="flex items-center gap-3 font-mono text-xs sm:text-sm text-zinc-400">
                 <div>
                   <span className="text-white font-bold">{formattedIndex}</span>
@@ -181,17 +184,14 @@ export default function Projects() {
                 )}
               </div>
 
-              {/* Titre */}
               <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight">
                 {currentProject.title}
               </h2>
 
-              {/* Description */}
               <p className="text-zinc-300 text-xs sm:text-base leading-relaxed line-clamp-3 sm:line-clamp-none font-light">
                 {currentProject.description}
               </p>
 
-              {/* Stack technique */}
               <div className="flex flex-wrap gap-1.5 sm:gap-2 pt-1">
                 {currentProject.stack.map((tech) => (
                   <span
@@ -203,7 +203,6 @@ export default function Projects() {
                 ))}
               </div>
 
-              {/* Actions */}
               <div className="flex flex-wrap items-center gap-4 pt-2 sm:pt-4 font-mono text-xs sm:text-sm">
                 {currentProject.inProgress ? (
                   slides.length > 0 && (
@@ -246,7 +245,7 @@ export default function Projects() {
 
       </div>
 
-      {/* 3. PAGINATION DESKTOP */}
+      {/* Pagination desktop */}
       <div className="absolute right-6 top-1/2 -translate-y-1/2 hidden md:flex flex-col gap-3 z-20">
         {projects.map((p, idx) => (
           <button
@@ -262,7 +261,7 @@ export default function Projects() {
         ))}
       </div>
 
-      {/* 4. CONTRÔLES BAS (TACTILE ET INTUITIF) */}
+      {/* Contrôles bas */}
       <div className="relative z-20 w-full pb-4 sm:pb-6 flex items-center justify-center gap-6 font-mono text-xs text-zinc-400">
         <button
           onClick={() => goToProject(currentIndex - 1)}
@@ -285,7 +284,7 @@ export default function Projects() {
         </button>
       </div>
 
-      {/* 5. CARROUSEL MAQUETTES RESPONSIVE */}
+      {/* Modale carrousel */}
       <AnimatePresence>
         {showScreenshot && slides.length > 0 && (
           <motion.div
