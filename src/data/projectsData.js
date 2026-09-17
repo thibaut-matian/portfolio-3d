@@ -34,7 +34,7 @@ export const projects = [
     stack: ["React", "Express", "Argon2", "Sequelize", "MySQL"],
     demoUrl: "https://iridescent-pony-061e8f.netlify.app",
     githubUrl: "https://github.com/ton-profil/vibesss",
-    bgImage: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1920&auto=format&fit=crop",
+    bgImage: "vibesss_home.png",
   },
   {
   id: 'notaire-office',
