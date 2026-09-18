@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, Suspense } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { ContactShadows, Environment } from '@react-three/drei'
+import { ContactShadows } from '@react-three/drei'
 import * as THREE from 'three'
 import CartridgeModel from './CartridgeModel'
 import CdModel from './CdModel'
@@ -28,7 +28,7 @@ function InteractiveItem({ activeIndex = 0 }) {
   }, [activeIndex])
 
   useFrame((state, delta) => {
-    const t = state.clock.getElapsedTime()
+    const t = state.clock.elapsedTime
 
     // Transition au switch de projet (rotation 360°)
     if (swapProgress.current < 1) {
@@ -113,19 +113,21 @@ function InteractiveItem({ activeIndex = 0 }) {
       <group ref={dragGroup}>
         <group ref={swapGroup}>
           <group ref={modelRef}>
-            {isCd ? (
-              <CdModel
-                scale={0.135}
-                rotation={[0.3, -0.4, 0.05]}
-                position={[0, 0, 0]}
-              />
-            ) : (
-              <CartridgeModel
-                scale={22}
-                rotation={[0.18, -0.38, 0.04]}
-                position={[0, 0, 0]}
-              />
-            )}
+            <Suspense fallback={null}>
+              {isCd ? (
+                <CdModel
+                  scale={0.135}
+                  rotation={[0.3, -0.4, 0.05]}
+                  position={[0, 0, 0]}
+                />
+              ) : (
+                <CartridgeModel
+                  scale={22}
+                  rotation={[0.18, -0.38, 0.04]}
+                  position={[0, 0, 0]}
+                />
+              )}
+            </Suspense>
           </group>
         </group>
       </group>
@@ -136,9 +138,11 @@ function InteractiveItem({ activeIndex = 0 }) {
 function Scene({ activeIndex = 0 }) {
   return (
     <>
-      <ambientLight intensity={1.1} />
-      <directionalLight position={[5, 8, 5]} intensity={2.2} />
-      <directionalLight position={[-5, -2, -2]} intensity={0.5} />
+      {/* Éclairage local renforcé sans requête externe */}
+      <ambientLight intensity={1.4} />
+      <directionalLight position={[5, 8, 5]} intensity={2.8} />
+      <directionalLight position={[-5, -2, -2]} intensity={0.8} color="#a7f3d0" />
+      <pointLight position={[0, 3, 2]} intensity={1.8} />
 
       <InteractiveItem activeIndex={activeIndex} />
 
@@ -149,7 +153,6 @@ function Scene({ activeIndex = 0 }) {
         blur={2.5}
         far={4}
       />
-      <Environment preset="city" />
     </>
   )
 }

@@ -22,5 +22,3 @@ export default function CdModel(props) {
     </group>
   )
 }
-
-useGLTF.preload('/cd.glb')
