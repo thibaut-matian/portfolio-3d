@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { projects } from '../data/projectsData'
 import CartridgeCanvas from './CartridgeCanvas'
@@ -73,7 +73,6 @@ export default function Projects() {
     }
 
     const handleTouchStart = (e) => {
-      // Si le doigt se pose sur la 3D, on désactive le swipe de page
       if (e.target.tagName === 'CANVAS' || e.target.closest('canvas')) {
         isTouchOnCanvas.current = true
         return
@@ -89,7 +88,6 @@ export default function Projects() {
       const deltaY = touchStartY.current - e.changedTouches[0].clientY
       const deltaX = touchStartX.current - e.changedTouches[0].clientX
 
-      // Swipe horizontal pour changer de projet
       if (Math.abs(deltaX) > 60 && Math.abs(deltaX) > Math.abs(deltaY)) {
         if (deltaX > 0 && currentIndex < projects.length - 1) {
           goToProject(currentIndex + 1)
@@ -131,9 +129,9 @@ export default function Projects() {
     <section
       id="projects"
       ref={sectionRef}
-      className="relative w-full h-[100dvh] bg-[#08090b] text-white select-none overflow-hidden flex flex-col justify-between"
+      className="relative w-full min-h-[100dvh] bg-[#08090b] text-white select-none overflow-hidden flex flex-col justify-between"
     >
-      {/* Fond avec dégradé */}
+      {/* Fond : suppression du filtre blur CSS responsable de l'écran noir sous Safari */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.img
@@ -141,21 +139,23 @@ export default function Projects() {
             src={currentProject.bgImage}
             alt={currentProject.title}
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.4 }}
+            animate={{ opacity: 0.35 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="w-full h-full object-cover filter blur-[2px]"
+            className="w-full h-full object-cover"
           />
         </AnimatePresence>
-        <div className="absolute inset-0 bg-gradient-to-b md:bg-gradient-to-r from-black/80 via-black/60 to-black/90" />
+        <div className="absolute inset-0 bg-gradient-to-b md:bg-gradient-to-r from-black/85 via-black/70 to-black/90" />
       </div>
 
       {/* Contenu principal */}
       <div className="relative z-10 max-w-7xl mx-auto w-full flex-1 px-5 sm:px-8 md:px-16 flex flex-col md:grid md:grid-cols-2 items-center justify-center gap-2 sm:gap-6 md:gap-16 pt-14 pb-16 md:py-0">
         
-        {/* Zone 3D : touch-none impératif pour mobile */}
+        {/* Zone 3D isolée avec Suspense pour sécuriser le rendu mobile */}
         <div className="w-full h-[220px] sm:h-[280px] md:h-[500px] flex items-center justify-center shrink-0 touch-none cursor-grab active:cursor-grabbing">
-          <CartridgeCanvas activeIndex={currentIndex} />
+          <Suspense fallback={<div className="font-mono text-xs text-zinc-600">Chargement...</div>}>
+            <CartridgeCanvas activeIndex={currentIndex} />
+          </Suspense>
         </div>
 
         {/* Détails du projet */}

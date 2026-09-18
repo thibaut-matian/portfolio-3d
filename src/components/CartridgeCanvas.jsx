@@ -15,7 +15,6 @@ function InteractiveItem({ activeIndex = 0 }) {
   const prevIndex = useRef(activeIndex)
   const swapProgress = useRef(1)
 
-  // Gestion du drag et de la rotation utilisateur
   const isDragging = useRef(false)
   const previousPointer = useRef({ x: 0, y: 0 })
   const dragRotation = useRef({ x: 0, y: 0 })
@@ -24,7 +23,6 @@ function InteractiveItem({ activeIndex = 0 }) {
     if (prevIndex.current !== activeIndex) {
       prevIndex.current = activeIndex
       swapProgress.current = 0
-      // Réinitialise l'angle utilisateur au changement de projet
       dragRotation.current = { x: 0, y: 0 }
     }
   }, [activeIndex])
@@ -32,7 +30,7 @@ function InteractiveItem({ activeIndex = 0 }) {
   useFrame((state, delta) => {
     const t = state.clock.getElapsedTime()
 
-    // 1. Transition au switch de projet (rotation 360°)
+    // Transition au switch de projet (rotation 360°)
     if (swapProgress.current < 1) {
       swapProgress.current = Math.min(1, swapProgress.current + delta * 2.8)
       const ease = 1 - Math.pow(1 - swapProgress.current, 3)
@@ -45,7 +43,7 @@ function InteractiveItem({ activeIndex = 0 }) {
       swapGroup.current.scale.set(1, 1, 1)
     }
 
-    // 2. Retour élastique fluide quand on relâche le clic
+    // Retour élastique quand on relâche
     if (!isDragging.current) {
       dragRotation.current.x = THREE.MathUtils.lerp(dragRotation.current.x, 0, 0.05)
       dragRotation.current.y = THREE.MathUtils.lerp(dragRotation.current.y, 0, 0.05)
@@ -54,7 +52,7 @@ function InteractiveItem({ activeIndex = 0 }) {
     dragGroup.current.rotation.x = dragRotation.current.x
     dragGroup.current.rotation.y = dragRotation.current.y
 
-    // 3. Flottaison douce (mise en pause pendant la manipulation)
+    // Flottaison
     const floatY = Math.sin(t * 1.8) * 0.1 + Math.cos(t * 0.9) * 0.03
     outerGroup.current.position.y = THREE.MathUtils.lerp(
       outerGroup.current.position.y,
@@ -62,7 +60,7 @@ function InteractiveItem({ activeIndex = 0 }) {
       0.08
     )
 
-    // 4. Mouvement continu propre à l'objet
+    // Rotation continue propre à l'objet
     if (modelRef.current) {
       if (isCd) {
         modelRef.current.rotation.z += delta * 0.25
@@ -72,10 +70,11 @@ function InteractiveItem({ activeIndex = 0 }) {
     }
   })
 
-  // Événements pointeur intégrés
   const handlePointerDown = (e) => {
     e.stopPropagation()
-    e.target.setPointerCapture(e.pointerId)
+    try {
+      e.target.setPointerCapture(e.pointerId)
+    } catch (_) {}
     isDragging.current = true
     previousPointer.current = { x: e.clientX, y: e.clientY }
   }
@@ -88,7 +87,6 @@ function InteractiveItem({ activeIndex = 0 }) {
     const deltaY = e.clientY - previousPointer.current.y
     previousPointer.current = { x: e.clientX, y: e.clientY }
 
-    // Rotation horizontale libre et limitation verticale à ±55°
     dragRotation.current.y += deltaX * 0.007
     dragRotation.current.x = Math.max(
       -Math.PI / 3.2,
@@ -158,8 +156,17 @@ function Scene({ activeIndex = 0 }) {
 
 export default function CartridgeCanvas({ activeIndex = 0 }) {
   return (
-    <div className="w-full h-full cursor-grab active:cursor-grabbing">
-      <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
+    <div className="w-full h-full cursor-grab active:cursor-grabbing touch-none select-none">
+      <Canvas
+        camera={{ position: [0, 0, 5], fov: 45 }}
+        dpr={[1, 1.5]}
+        gl={{
+          antialias: false,
+          alpha: true,
+          powerPreference: 'default'
+        }}
+        style={{ width: '100%', height: '100%', touchAction: 'none' }}
+      >
         <Suspense fallback={null}>
           <Scene activeIndex={activeIndex} />
         </Suspense>
